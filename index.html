@@ -257,6 +257,7 @@ td{padding:8px 12px;vertical-align:middle}
     <span class="repo-name">ensayos-reologia-3DCP</span>
     <div class="header-right">
       <span class="header-badge" id="hBadgeTotal">36 ensayos</span>
+      <span id="syncStatus" style="font-family:var(--mono);font-size:11px;color:var(--text3);min-width:140px;text-align:right">⟳ Conectando…</span>
     </div>
   </div>
 </header>
@@ -544,6 +545,82 @@ data[33].notes='Validación grueso';data[34].notes='Validación grueso';data[35]
 
 let nextId=37,sortCol='id',sortDir='asc',currentTab='rheology',openPanelId=null;
 let calYear=new Date().getFullYear(),calMonth=new Date().getMonth(),calViewMode='month';
+
+// ── JSONBIN SYNC ──────────────────────────────────────────────
+const BIN_ID='6a1a23fe21f9ee59d29bfa46';
+const API_KEY='$2a$10$GN73z9jnOMEI9KbP8sZmsO1TJcaRiuSbHUCIIz6.PodgbelJ..Lr6';
+const BIN_URL=`https://api.jsonbin.io/v3/b/${BIN_ID}`;
+let saveTimer=null;
+
+function setSyncStatus(state,msg){
+  const el=document.getElementById('syncStatus');
+  if(!el) return;
+  const colors={saving:'var(--amber)',ok:'var(--green)',error:'var(--red)',loading:'var(--text3)'};
+  const icons={saving:'⟳',ok:'✓',error:'✗',loading:'⟳'};
+  el.style.color=colors[state]||'var(--text3)';
+  el.textContent=(icons[state]||'')+' '+msg;
+}
+
+async function loadFromBin(){
+  setSyncStatus('loading','Cargando datos…');
+  try{
+    const r=await fetch(BIN_URL+'/latest',{headers:{'X-Access-Key':API_KEY}});
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    const json=await r.json();
+    const remote=json.record;
+    // Merge: keep local structure, overwrite with remote data for each entry
+    if(remote&&remote.data&&remote.data.length>0){
+      // For each local entry, find matching remote entry by id and merge
+      data=data.map(local=>{
+        const rem=remote.data.find(r=>r.id===local.id);
+        if(!rem) return local;
+        // Preserve all remote fields, fallback to local for missing
+        return{
+          ...local,...rem,
+          spec1:{...local.spec1,...(rem.spec1||{})},
+          spec2:{...local.spec2,...(rem.spec2||{})},
+          cubes:{...local.cubes,...(rem.cubes||{})},
+        };
+      });
+      // Add any new entries from remote not in local defaults
+      for(const rem of remote.data){
+        if(!data.find(d=>d.id===rem.id)) data.push(rem);
+      }
+      // Update nextId
+      const maxId=Math.max(...data.map(d=>d.id),36);
+      nextId=maxId+1;
+    }
+    if(remote&&remote.nextId) nextId=remote.nextId;
+    setSyncStatus('ok','Datos sincronizados');
+  }catch(e){
+    setSyncStatus('error','Error al cargar — trabajando sin conexión');
+    console.warn('JSONBin load error:',e);
+  }
+  renderRheo();
+}
+
+async function saveToBin(){
+  setSyncStatus('saving','Guardando…');
+  try{
+    const r=await fetch(BIN_URL,{
+      method:'PUT',
+      headers:{'Content-Type':'application/json','X-Access-Key':API_KEY},
+      body:JSON.stringify({data,nextId})
+    });
+    if(!r.ok) throw new Error('HTTP '+r.status);
+    setSyncStatus('ok','Guardado ✓');
+  }catch(e){
+    setSyncStatus('error','Error al guardar');
+    console.warn('JSONBin save error:',e);
+  }
+}
+
+// Debounced save: waits 1.5s after last change before saving
+function scheduleSave(){
+  setSyncStatus('saving','Por guardar…');
+  clearTimeout(saveTimer);
+  saveTimer=setTimeout(()=>saveToBin(),1500);
+}
 
 // ── SCHEDULE ──────────────────────────────────────────────────
 const RET_STEPS=[
@@ -1123,26 +1200,26 @@ function cubeSection(d){
 
 // ── SAVE ────────────────────────────────────────────────────
 function saveRheoField(id,field,val){
-  const d=data.find(x=>x.id===id);if(d){d[field]=val;renderRheo();if(currentTab==='calendar')renderCal();}
+  const d=data.find(x=>x.id===id);if(d){d[field]=val;renderRheo();if(currentTab==='calendar')renderCal();scheduleSave();}
 }
 function saveSpec(id,specKey,field,val){
   const d=data.find(x=>x.id===id);
-  if(d){d[specKey][field]=val;refreshPanel(id);renderShrink();if(currentTab==='calendar')renderCal();}
+  if(d){d[specKey][field]=val;refreshPanel(id);renderShrink();if(currentTab==='calendar')renderCal();scheduleSave();}
 }
 function saveCube(id,field,val){
   const d=data.find(x=>x.id===id);
-  if(d){if(!d.cubes)d.cubes={active:true,fabDate:'',fabTime:'',checks:{}};d.cubes[field]=val;refreshPanel(id);renderShrink();if(currentTab==='calendar')renderCal();}
+  if(d){if(!d.cubes)d.cubes={active:true,fabDate:'',fabTime:'',checks:{}};d.cubes[field]=val;refreshPanel(id);renderShrink();if(currentTab==='calendar')renderCal();scheduleSave();}
 }
 function toggleCubeActive(id,val){
   const d=data.find(x=>x.id===id);
-  if(d){if(!d.cubes)d.cubes={active:false,fabDate:'',fabTime:'',checks:{}};d.cubes.active=val;refreshPanel(id);renderRheo();renderShrink();if(currentTab==='calendar')renderCal();}
+  if(d){if(!d.cubes)d.cubes={active:false,fabDate:'',fabTime:'',checks:{}};d.cubes.active=val;refreshPanel(id);renderRheo();renderShrink();if(currentTab==='calendar')renderCal();scheduleSave();}
 }
 function toggleCheck(id,section,key,val){
   const d=data.find(x=>x.id===id);
   if(d){
     if(section==='cubes'){if(!d.cubes)d.cubes={active:true,fabDate:'',fabTime:'',checks:{}};d.cubes.checks[key]=val;}
     else{d[section].checks[key]=val;}
-    renderShrink();
+    renderShrink();scheduleSave();
   }
 }
 function toggleSec(id){const el=document.getElementById(id);if(el)el.classList.toggle('hidden');}
@@ -1202,11 +1279,11 @@ function saveEntry(){
   if(id){const i=data.findIndex(d=>d.id===parseInt(id));if(i>-1)data[i]=entry;}
   else data.push(entry);
   document.getElementById('modalOverlay').classList.remove('open');
-  renderRheo();
+  renderRheo();scheduleSave();
 }
 function deleteEntry(id){
   if(!confirm('¿Eliminar este ensayo?')) return;
-  data=data.filter(d=>d.id!==id);renderRheo();
+  data=data.filter(d=>d.id!==id);renderRheo();scheduleSave();
 }
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'){
@@ -1219,7 +1296,8 @@ document.addEventListener('click',e=>{
   if(pop.style.display!=='none'&&!pop.contains(e.target)) closePopover();
 });
 
-renderRheo();
+// ── INIT: cargar datos desde la nube ──────────────────────────
+loadFromBin();
 </script>
 </body>
 </html>
