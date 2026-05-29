@@ -1,0 +1,1225 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Calendario de Ensayos — Reología 3DCP</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d1117;--bg2:#161b22;--bg3:#21262d;--bg4:#2d333b;
+  --border:#30363d;--border2:#444c56;
+  --text:#e6edf3;--text2:#8b949e;--text3:#6e7681;
+  --accent:#58a6ff;--accent2:#1f6feb;
+  --green:#3fb950;--green-bg:#0d2b14;--green-border:#1a4523;
+  --amber:#d29922;--amber-bg:#2b1d0e;--amber-border:#4b2f0a;
+  --blue:#58a6ff;--blue-bg:#0c2d6b;--blue-border:#1158c7;
+  --red:#f85149;--red-bg:#2b0e0e;--red-border:#5a1e1e;
+  --purple:#bc8cff;--purple-bg:#1e1038;--purple-border:#3d2070;
+  --orange:#f0883e;--orange-bg:#2b1500;--orange-border:#5a2e0e;
+  --mono:'IBM Plex Mono',monospace;
+  --sans:'IBM Plex Sans',sans-serif;
+  --radius:6px;
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:14px}
+body{font-family:var(--sans);background:var(--bg);color:var(--text);min-height:100vh;line-height:1.5}
+
+/* HEADER */
+.site-header{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 24px;position:sticky;top:0;z-index:50}
+.header-inner{max-width:1400px;margin:0 auto;height:56px;display:flex;align-items:center;gap:16px}
+.header-logo{display:flex;align-items:center;gap:8px;font-family:var(--mono);font-size:13px;font-weight:500;color:var(--text);text-decoration:none}
+.header-logo svg{width:20px;height:20px;fill:var(--text2)}
+.header-sep{color:var(--text3);font-size:18px;font-weight:300}
+.repo-name{color:var(--accent);font-weight:500}
+.header-right{margin-left:auto;display:flex;align-items:center;gap:8px}
+.header-badge{font-family:var(--mono);font-size:11px;padding:2px 8px;border-radius:20px;border:1px solid var(--border);color:var(--text2);background:var(--bg3)}
+
+/* NAV TABS */
+.nav-tabs{background:var(--bg2);border-bottom:1px solid var(--border);padding:0 24px}
+.nav-tabs-inner{max-width:1400px;margin:0 auto;display:flex}
+.nav-tab{padding:10px 16px;font-size:13px;font-family:var(--mono);color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;transition:color .15s;user-select:none;white-space:nowrap}
+.nav-tab:hover{color:var(--text)}
+.nav-tab.active{color:var(--text);border-bottom-color:var(--accent)}
+
+.main{max-width:1400px;margin:0 auto;padding:24px}
+.view{display:none}.view.active{display:block}
+
+/* REPO INFO */
+.repo-info{margin-bottom:24px;padding-bottom:20px;border-bottom:1px solid var(--border)}
+.repo-title-row{display:flex;align-items:center;gap:12px;margin-bottom:6px;flex-wrap:wrap}
+.repo-title{font-family:var(--mono);font-size:20px;font-weight:500;color:var(--accent)}
+.topic-badge{font-size:11px;padding:2px 10px;border-radius:20px;background:var(--blue-bg);color:var(--blue);border:1px solid var(--blue-border);font-family:var(--mono)}
+.repo-desc{color:var(--text2);font-size:13px;margin-bottom:10px}
+.repo-meta{display:flex;gap:16px;flex-wrap:wrap;font-size:12px;color:var(--text3);font-family:var(--mono)}
+
+/* STATS */
+.stats-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:20px}
+.stat-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.stat-num{font-family:var(--mono);font-size:26px;font-weight:500;line-height:1;margin-bottom:4px}
+.stat-lbl{font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.6px}
+.stat-card.total .stat-num{color:var(--text)}
+.stat-card.done .stat-num{color:var(--green)}
+.stat-card.prog .stat-num{color:var(--accent)}
+.stat-card.pend .stat-num{color:var(--amber)}
+
+/* PROGRESS */
+.progress-section{margin-bottom:20px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px}
+.progress-header{display:flex;justify-content:space-between;font-size:12px;color:var(--text2);font-family:var(--mono);margin-bottom:8px}
+.progress-track{height:8px;background:var(--bg3);border-radius:4px;overflow:hidden}
+.progress-fill{height:100%;background:linear-gradient(90deg,#238636,#3fb950);border-radius:4px;transition:width .5s ease}
+
+/* CONTROLS */
+.controls-bar{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;align-items:center}
+.search-wrap{position:relative;flex:1;min-width:180px}
+.search-wrap svg{position:absolute;left:10px;top:50%;transform:translateY(-50%);width:14px;height:14px;fill:none;stroke:var(--text3);stroke-width:2;pointer-events:none}
+.search-input{width:100%;height:32px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--mono);font-size:12px;padding:0 10px 0 32px;outline:none;transition:border-color .15s}
+.search-input:focus{border-color:var(--accent2)}
+.search-input::placeholder{color:var(--text3)}
+select.filter{height:32px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--mono);font-size:12px;padding:0 28px 0 10px;outline:none;appearance:none;cursor:pointer;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%238b949e'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 10px center}
+select.filter:focus{border-color:var(--accent2)}
+.btn{height:32px;padding:0 14px;border-radius:var(--radius);font-family:var(--mono);font-size:12px;cursor:pointer;border:1px solid var(--border2);background:var(--bg3);color:var(--text);display:inline-flex;align-items:center;gap:6px;transition:background .15s;white-space:nowrap}
+.btn:hover{background:var(--bg4)}
+.btn-green{background:#238636;border-color:#2ea043;color:#fff}
+.btn-green:hover{background:#2ea043}
+.btn-blue{background:var(--blue-bg);border-color:var(--blue-border);color:var(--blue)}
+.btn-blue:hover{background:#1158c7;color:#fff}
+.btn-sm{height:26px;padding:0 10px;font-size:11px}
+
+/* TABLE */
+.table-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:13px;min-width:860px}
+thead tr{background:var(--bg3);border-bottom:1px solid var(--border)}
+th{padding:8px 12px;text-align:left;font-family:var(--mono);font-size:11px;font-weight:500;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;white-space:nowrap;user-select:none;cursor:pointer}
+th:hover{color:var(--text2)}
+tbody tr{border-bottom:1px solid var(--border);transition:background .1s;cursor:pointer}
+tbody tr:last-child{border-bottom:none}
+tbody tr:hover{background:rgba(255,255,255,.03)}
+td{padding:8px 12px;vertical-align:middle}
+.code-cell{font-family:var(--mono);font-size:12px;color:var(--accent);white-space:nowrap}
+.date-cell{font-family:var(--mono);font-size:12px;color:var(--text2);white-space:nowrap}
+.notes-cell{color:var(--text3);font-size:12px;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.temp-cell,.naoh-cell,.repl-cell{font-family:var(--mono);font-size:12px;white-space:nowrap}
+.naoh-cell{color:var(--purple)}
+
+/* BADGES */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:20px;font-size:11px;font-family:var(--mono);border:1px solid;white-space:nowrap}
+.badge-pend{background:var(--amber-bg);color:var(--amber);border-color:var(--amber-border)}
+.badge-prog{background:var(--blue-bg);color:var(--blue);border-color:var(--blue-border)}
+.badge-done{background:var(--green-bg);color:var(--green);border-color:var(--green-border)}
+.badge-skip{background:var(--bg3);color:var(--text3);border-color:var(--border)}
+.badge-s1{background:var(--purple-bg);color:var(--purple);border-color:var(--purple-border)}
+.badge-s2{background:var(--orange-bg);color:var(--orange);border-color:var(--orange-border)}
+.badge-fino{background:#0e1f2b;color:#79c0ff;border-color:#1158c7}
+.badge-grueso{background:#1a1108;color:#d29922;border-color:#4b2f0a}
+.badge-ambos{background:#1a0e1f;color:#bc8cff;border-color:#3d2070}
+.badge-control{background:var(--bg3);color:var(--text3);border-color:var(--border)}
+.badge-mini{padding:1px 6px;font-size:10px}
+
+.empty{text-align:center;padding:60px 20px;color:var(--text3);font-family:var(--mono);font-size:13px}
+.sort-asc::after{content:' ↑'}.sort-desc::after{content:' ↓'}
+
+/* ═══ CALENDAR VIEW ═══════════════════════════════════════════ */
+.cal-controls{display:flex;align-items:center;gap:12px;margin-bottom:20px;flex-wrap:wrap}
+.cal-nav{display:flex;align-items:center;gap:8px}
+.cal-month-label{font-family:var(--mono);font-size:16px;font-weight:500;min-width:180px;text-align:center}
+.cal-legend{display:flex;gap:12px;flex-wrap:wrap;margin-left:auto}
+.leg-item{display:flex;align-items:center;gap:5px;font-family:var(--mono);font-size:11px;color:var(--text2)}
+.leg-dot{width:10px;height:10px;border-radius:2px;flex-shrink:0}
+
+/* Monthly grid */
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;margin-bottom:16px}
+.cal-dow{background:var(--bg3);padding:6px 4px;text-align:center;font-family:var(--mono);font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px}
+.cal-day{background:var(--bg2);min-height:110px;padding:4px;position:relative;vertical-align:top}
+.cal-day.other-month{background:#0b0f14}
+.cal-day.today{background:#0c1e35}
+.cal-day.today .cal-dn{color:var(--accent);font-weight:500}
+.cal-dn{font-family:var(--mono);font-size:11px;color:var(--text3);margin-bottom:3px;display:block}
+.cal-events{display:flex;flex-direction:column;gap:2px}
+.cal-ev{border-radius:3px;padding:1px 5px;font-size:10px;font-family:var(--mono);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;cursor:pointer;line-height:1.6;transition:opacity .1s}
+.cal-ev:hover{opacity:.8}
+.cal-ev.type-saos{background:#0c2d6b;color:#79c0ff;border-left:2px solid #58a6ff}
+.cal-ev.type-ret{background:#0d2b14;color:#56d364;border-left:2px solid #3fb950}
+.cal-ev.type-comp{background:#2b1500;color:#f0a862;border-left:2px solid #f0883e}
+.cal-ev.done{opacity:.4;text-decoration:line-through}
+.cal-more{font-size:10px;color:var(--text3);font-family:var(--mono);padding:1px 4px;cursor:pointer}
+.cal-more:hover{color:var(--text)}
+
+/* Day detail popover */
+.day-popover{position:fixed;z-index:300;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--radius);padding:14px;min-width:260px;max-width:320px;box-shadow:0 8px 24px rgba(0,0,0,.6)}
+.day-popover h4{font-family:var(--mono);font-size:13px;margin-bottom:10px;color:var(--text)}
+.day-popover .pop-ev{padding:5px 8px;border-radius:4px;margin-bottom:4px;font-size:12px;font-family:var(--mono)}
+.day-popover .pop-ev.type-saos{background:#0c2d6b;color:#79c0ff}
+.day-popover .pop-ev.type-ret{background:#0d2b14;color:#56d364}
+.day-popover .pop-ev.type-comp{background:#2b1500;color:#f0a862}
+.day-popover .pop-close{float:right;background:none;border:none;color:var(--text3);cursor:pointer;font-size:16px;line-height:1;margin-top:-2px}
+
+/* Agenda list view (weekly) */
+.agenda-wrap{background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.agenda-week{border-bottom:1px solid var(--border)}
+.agenda-week:last-child{border-bottom:none}
+.agenda-week-hdr{padding:8px 14px;background:var(--bg3);font-family:var(--mono);font-size:11px;color:var(--text3);text-transform:uppercase;letter-spacing:.5px;cursor:pointer;display:flex;justify-content:space-between;align-items:center;user-select:none}
+.agenda-week-hdr:hover{color:var(--text2)}
+.agenda-day-group{padding:0}
+.agenda-day-row{display:flex;border-bottom:1px solid var(--border);min-height:32px}
+.agenda-day-row:last-child{border-bottom:none}
+.agenda-date-col{width:110px;flex-shrink:0;padding:6px 12px;font-family:var(--mono);font-size:11px;color:var(--text2);border-right:1px solid var(--border);display:flex;align-items:flex-start;padding-top:8px}
+.agenda-date-col.today-date{color:var(--accent)}
+.agenda-evs-col{flex:1;padding:5px 10px;display:flex;flex-direction:column;gap:3px}
+.agenda-ev{display:inline-flex;align-items:center;gap:6px;padding:2px 8px;border-radius:3px;font-size:11px;font-family:var(--mono);width:fit-content}
+.agenda-ev.type-saos{background:#0c2d6b;color:#79c0ff}
+.agenda-ev.type-ret{background:#0d2b14;color:#56d364}
+.agenda-ev.type-comp{background:#2b1500;color:#f0a862}
+.agenda-ev.done{opacity:.4;text-decoration:line-through}
+
+/* view toggle */
+.view-toggle{display:flex;border:1px solid var(--border);border-radius:var(--radius);overflow:hidden}
+.view-toggle-btn{padding:4px 12px;font-family:var(--mono);font-size:12px;cursor:pointer;border:none;background:transparent;color:var(--text2)}
+.view-toggle-btn.active{background:var(--bg3);color:var(--text)}
+.view-toggle-btn:hover{color:var(--text)}
+
+/* PANEL */
+.detail-panel{position:fixed;top:0;right:0;width:min(660px,100vw);height:100vh;background:var(--bg2);border-left:1px solid var(--border2);z-index:200;display:flex;flex-direction:column;transform:translateX(100%);transition:transform .25s ease}
+.detail-panel.open{transform:translateX(0)}
+.panel-header{padding:16px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:12px;flex-shrink:0}
+.panel-close{background:none;border:none;color:var(--text2);font-size:22px;cursor:pointer;line-height:1;padding:2px 6px;border-radius:4px}
+.panel-close:hover{color:var(--text);background:var(--bg3)}
+.panel-code{font-family:var(--mono);font-size:16px;color:var(--accent);font-weight:500}
+.panel-body{flex:1;overflow-y:auto;padding:20px}
+.panel-scrim{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:199}
+.panel-scrim.open{display:block}
+
+.sec-card{background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:16px;overflow:hidden}
+.sec-card-header{padding:12px 16px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);cursor:pointer;user-select:none}
+.sec-card-title{font-family:var(--mono);font-size:13px;font-weight:500;display:flex;align-items:center;gap:8px}
+.sec-card-body{padding:16px}
+.sec-card-body.hidden{display:none}
+
+.pform-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px}
+.pform-row{margin-bottom:10px}
+.pform-row label{display:block;font-size:11px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px}
+.pform-row input,.pform-row select,.pform-row textarea{width:100%;height:32px;background:var(--bg2);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--mono);font-size:12px;padding:0 10px;outline:none;transition:border-color .15s}
+.pform-row input:focus,.pform-row select:focus,.pform-row textarea:focus{border-color:var(--accent2)}
+.pform-row textarea{height:56px;padding:8px 10px;resize:vertical}
+.checkbox-row{display:flex;align-items:center;gap:8px;padding:6px 0}
+.checkbox-row label{font-size:13px;color:var(--text2);cursor:pointer;margin-bottom:0;text-transform:none;letter-spacing:0;font-family:var(--sans)}
+.checkbox-row input[type="checkbox"]{width:auto;height:auto;accent-color:var(--accent2);cursor:pointer}
+
+.sched-table{width:100%;border-collapse:collapse;font-size:12px;font-family:var(--mono)}
+.sched-table th{padding:6px 10px;text-align:left;color:var(--text3);font-size:10px;text-transform:uppercase;letter-spacing:.5px;border-bottom:1px solid var(--border);font-weight:500}
+.sched-table td{padding:7px 10px;border-bottom:1px solid var(--border);vertical-align:middle}
+.sched-table tr:last-child td{border-bottom:none}
+.sched-table tr.past td{color:var(--text3)}
+.check-col input[type="checkbox"]{accent-color:var(--green);cursor:pointer;width:15px;height:15px}
+.sched-type-ret{color:#39d353}.sched-type-comp{color:var(--orange)}
+
+.meta-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.meta-item{background:var(--bg2);border:1px solid var(--border);border-radius:4px;padding:8px 10px}
+.meta-val{font-family:var(--mono);font-size:13px;font-weight:500;color:var(--text)}
+.meta-lbl{font-size:10px;color:var(--text3);text-transform:uppercase;letter-spacing:.4px;margin-top:2px}
+
+/* MODAL */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:400;align-items:center;justify-content:center;padding:20px}
+.modal-overlay.open{display:flex}
+.modal{background:var(--bg2);border:1px solid var(--border2);border-radius:10px;padding:24px;width:min(540px,100%);max-height:90vh;overflow-y:auto}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.modal-title{font-family:var(--mono);font-size:15px;color:var(--text)}
+.modal-close{background:none;border:none;color:var(--text3);font-size:20px;cursor:pointer;padding:4px}
+.modal-close:hover{color:var(--text)}
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.form-row{margin-bottom:12px}
+.form-row label{display:block;font-size:11px;font-family:var(--mono);color:var(--text3);text-transform:uppercase;letter-spacing:.5px;margin-bottom:5px}
+.form-row input,.form-row select,.form-row textarea{width:100%;height:34px;background:var(--bg3);border:1px solid var(--border);border-radius:var(--radius);color:var(--text);font-family:var(--mono);font-size:12px;padding:0 10px;outline:none}
+.form-row textarea{height:68px;padding:8px 10px;resize:vertical}
+.modal-footer{display:flex;justify-content:flex-end;gap:8px;margin-top:20px;padding-top:16px;border-top:1px solid var(--border)}
+
+.site-footer{max-width:1400px;margin:32px auto 0;padding:20px 24px;border-top:1px solid var(--border);font-size:11px;font-family:var(--mono);color:var(--text3);display:flex;gap:16px;flex-wrap:wrap;justify-content:space-between}
+
+@media(max-width:700px){
+  .form-grid,.pform-grid{grid-template-columns:1fr}
+  .stats-grid{grid-template-columns:repeat(2,1fr)}
+  .meta-grid{grid-template-columns:repeat(2,1fr)}
+  .main{padding:14px}
+  .cal-grid{grid-template-columns:repeat(7,1fr)}
+  .cal-day{min-height:70px}
+}
+</style>
+</head>
+<body>
+
+<header class="site-header">
+  <div class="header-inner">
+    <a href="#" class="header-logo">
+      <svg viewBox="0 0 16 16"><path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></svg>
+      nicolas-tesis
+    </a>
+    <span class="header-sep">/</span>
+    <span class="repo-name">ensayos-reologia-3DCP</span>
+    <div class="header-right">
+      <span class="header-badge" id="hBadgeTotal">36 ensayos</span>
+    </div>
+  </div>
+</header>
+
+<nav class="nav-tabs">
+  <div class="nav-tabs-inner">
+    <div class="nav-tab active" onclick="switchTab('rheology')">⬡ Reología (SAOS)</div>
+    <div class="nav-tab" onclick="switchTab('shrinkage')">⬡ Retracción &amp; Cubos</div>
+    <div class="nav-tab" onclick="switchTab('calendar')">📅 Calendario</div>
+  </div>
+</nav>
+
+<main class="main">
+
+<!-- ═══ TAB: REOLOGÍA ═══ -->
+<div class="view active" id="view-rheology">
+  <div class="repo-info">
+    <div class="repo-title-row">
+      <span class="repo-title">ensayos-reologia-3DCP</span>
+      <span class="topic-badge">SAOS</span><span class="topic-badge">3DCP</span><span class="topic-badge">fly-ash</span>
+    </div>
+    <p class="repo-desc">Árido artificial de ceniza volante activada con NaOH — hormigón impreso en 3D. Series I (30 mezclas) y Serie II (6 validación).</p>
+    <div class="repo-meta">
+      <span>📋 Protocolo: AS1 → Reposo 5 min → AS2 → SAOS 30 min → AS3</span>
+      <span>🌡️ T: 10 / 20 / 25 / 30 °C</span>
+      <span>⚗️ NaOH: 2.5 M · 3.25 M · 4.0 M</span>
+    </div>
+  </div>
+  <div class="stats-grid">
+    <div class="stat-card total"><div class="stat-num" id="sTotal">0</div><div class="stat-lbl">Total</div></div>
+    <div class="stat-card done"><div class="stat-num" id="sDone">0</div><div class="stat-lbl">Completados</div></div>
+    <div class="stat-card prog"><div class="stat-num" id="sProg">0</div><div class="stat-lbl">En progreso</div></div>
+    <div class="stat-card pend"><div class="stat-num" id="sPend">0</div><div class="stat-lbl">Pendientes</div></div>
+  </div>
+  <div class="progress-section">
+    <div class="progress-header"><span>Avance SAOS</span><span id="progPct">0%</span></div>
+    <div class="progress-track"><div class="progress-fill" id="progFill" style="width:0%"></div></div>
+  </div>
+  <div class="controls-bar">
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" class="search-input" id="search" placeholder="Buscar código, notas…" oninput="renderRheo()">
+    </div>
+    <select class="filter" id="fSerie" onchange="renderRheo()">
+      <option value="">Todas las series</option>
+      <option value="I">Serie I</option><option value="II">Serie II</option>
+    </select>
+    <select class="filter" id="fStatus" onchange="renderRheo()">
+      <option value="">Todos los estados</option>
+      <option value="pendiente">Pendiente</option>
+      <option value="en progreso">En progreso</option>
+      <option value="completado">Completado</option>
+      <option value="omitido">Omitido</option>
+    </select>
+    <select class="filter" id="fTemp" onchange="renderRheo()">
+      <option value="">Todas las T°</option>
+      <option value="10">10°C</option><option value="20">20°C</option>
+      <option value="25">25°C</option><option value="30">30°C</option>
+    </select>
+    <select class="filter" id="fAgg" onchange="renderRheo()">
+      <option value="">Todos los agregados</option>
+      <option value="fino">Fino</option><option value="grueso">Grueso</option>
+      <option value="ambos">Ambos</option><option value="control">Control</option>
+    </select>
+    <button class="btn btn-green" onclick="openModal()">+ Nuevo ensayo</button>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th onclick="sortBy('code')" id="th-code">Código</th>
+        <th onclick="sortBy('serie')" id="th-serie">Serie</th>
+        <th onclick="sortBy('agg')" id="th-agg">Agregado</th>
+        <th onclick="sortBy('repl')" id="th-repl">Reemplazo</th>
+        <th onclick="sortBy('naoh')" id="th-naoh">NaOH</th>
+        <th onclick="sortBy('temp')" id="th-temp">Temp.</th>
+        <th onclick="sortBy('rheoDate')" id="th-rheoDate">Fecha SAOS</th>
+        <th onclick="sortBy('status')" id="th-status">Estado</th>
+        <th>Paper 2</th>
+        <th>Notas</th>
+        <th></th>
+      </tr></thead>
+      <tbody id="tbody"></tbody>
+    </table>
+    <div class="empty" id="emptyMsg" style="display:none">Sin resultados.</div>
+  </div>
+</div>
+
+<!-- ═══ TAB: RETRACCIÓN & CUBOS ═══ -->
+<div class="view" id="view-shrinkage">
+  <div class="repo-info">
+    <div class="repo-title-row">
+      <span class="repo-title">retracción &amp; compresión</span>
+      <span class="topic-badge">Paper 2</span><span class="topic-badge">shrinkage</span><span class="topic-badge">cubos</span>
+    </div>
+    <p class="repo-desc">Haz clic en cualquier fila para ingresar fecha/hora de fabricación. El sistema calcula el calendario completo de mediciones.</p>
+    <div class="repo-meta">
+      <span>📏 Retracción: desmolde (8h) → 15' → 45' → 90' → 180' → 1d → 2d → 7d → 14d → 21d → 28d</span>
+      <span>🧱 Compresión: 7d · 28d</span>
+    </div>
+  </div>
+  <div class="controls-bar">
+    <div class="search-wrap">
+      <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      <input type="text" class="search-input" id="search2" placeholder="Buscar mezcla…" oninput="renderShrink()">
+    </div>
+    <select class="filter" id="fSerie2" onchange="renderShrink()">
+      <option value="">Todas las series</option>
+      <option value="I">Serie I</option><option value="II">Serie II</option>
+    </select>
+    <select class="filter" id="fHasData" onchange="renderShrink()">
+      <option value="">Todas</option>
+      <option value="1">Con fecha fabricación</option>
+      <option value="0">Sin fecha</option>
+    </select>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr>
+        <th>Código</th><th>Serie</th><th>Agregado</th>
+        <th>Espécimen 1</th><th>Espécimen 2</th><th>Cubos</th>
+        <th>Próxima medición</th><th></th>
+      </tr></thead>
+      <tbody id="tbody2"></tbody>
+    </table>
+    <div class="empty" id="emptyMsg2" style="display:none">Sin resultados.</div>
+  </div>
+</div>
+
+<!-- ═══ TAB: CALENDARIO ═══ -->
+<div class="view" id="view-calendar">
+  <div class="repo-info">
+    <div class="repo-title-row">
+      <span class="repo-title">calendario de ensayos</span>
+      <span class="topic-badge">vista global</span>
+    </div>
+    <p class="repo-desc">Vista unificada de todos los ensayos programados: SAOS, mediciones de retracción y ensayos de compresión. Los ensayos SAOS requieren fecha asignada en la pestaña Reología; los de retracción y compresión se generan automáticamente desde la pestaña Retracción &amp; Cubos.</p>
+  </div>
+
+  <div class="cal-controls">
+    <div class="cal-nav">
+      <button class="btn" onclick="calPrev()">&#8249;</button>
+      <span class="cal-month-label" id="calMonthLabel">—</span>
+      <button class="btn" onclick="calNext()">&#8250;</button>
+      <button class="btn" onclick="calToday()" style="margin-left:4px">Hoy</button>
+    </div>
+    <div class="view-toggle">
+      <button class="view-toggle-btn active" id="vtMonth" onclick="setCalView('month')">Mes</button>
+      <button class="view-toggle-btn" id="vtAgenda" onclick="setCalView('agenda')">Agenda</button>
+    </div>
+    <div class="cal-legend">
+      <span class="leg-item"><span class="leg-dot" style="background:#58a6ff"></span>SAOS</span>
+      <span class="leg-item"><span class="leg-dot" style="background:#3fb950"></span>Retracción</span>
+      <span class="leg-item"><span class="leg-dot" style="background:#f0883e"></span>Compresión</span>
+    </div>
+    <div style="margin-left:auto">
+      <select class="filter" id="calFilter" onchange="renderCal()">
+        <option value="">Todos los tipos</option>
+        <option value="saos">Solo SAOS</option>
+        <option value="ret">Solo Retracción</option>
+        <option value="comp">Solo Compresión</option>
+      </select>
+    </div>
+  </div>
+
+  <div id="calMonthView">
+    <div class="cal-grid" id="calDowRow"></div>
+    <div class="cal-grid" id="calDaysGrid"></div>
+  </div>
+  <div id="calAgendaView" style="display:none">
+    <div class="agenda-wrap" id="agendaContent"></div>
+  </div>
+</div>
+
+</main>
+
+<footer class="site-footer">
+  <span>Tesis de Maestría · Departamento de Ingeniería Civil</span>
+  <span id="lastUpdate">—</span>
+</footer>
+
+<!-- PANEL SCRIM -->
+<div class="panel-scrim" id="panelScrim" onclick="closePanel()"></div>
+
+<!-- DETAIL PANEL -->
+<div class="detail-panel" id="detailPanel">
+  <div class="panel-header">
+    <button class="panel-close" onclick="closePanel()">←</button>
+    <span class="panel-code" id="panelCode">—</span>
+    <div style="margin-left:auto;display:flex;gap:6px" id="panelBadges"></div>
+  </div>
+  <div class="panel-body" id="panelBody"></div>
+</div>
+
+<!-- DAY POPOVER -->
+<div class="day-popover" id="dayPopover" style="display:none">
+  <button class="pop-close" onclick="closePopover()">×</button>
+  <h4 id="popDate">—</h4>
+  <div id="popEvents"></div>
+</div>
+
+<!-- MODAL NUEVO ENSAYO -->
+<div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-header">
+      <span class="modal-title" id="modalTitle">Nuevo ensayo</span>
+      <button class="modal-close" onclick="closeModal()">×</button>
+    </div>
+    <input type="hidden" id="editId">
+    <div class="form-grid">
+      <div class="form-row"><label>Código *</label><input id="fCode" placeholder="ej. FA-F15-2.5M-20"></div>
+      <div class="form-row"><label>Serie</label><select id="fSerieI"><option value="I">Serie I</option><option value="II">Serie II</option></select></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-row"><label>Agregado</label><select id="fAggI"><option value="fino">Fino</option><option value="grueso">Grueso</option><option value="ambos">Ambos</option><option value="control">Control</option></select></div>
+      <div class="form-row"><label>% Reemplazo</label><input id="fRepl" type="number" min="0" max="100" placeholder="ej. 15"></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-row"><label>NaOH</label><select id="fNaOH"><option value="2.5M">2.5 M</option><option value="3.25M">3.25 M</option><option value="4.0M">4.0 M</option><option value="—">— (control)</option></select></div>
+      <div class="form-row"><label>Temperatura</label><select id="fTempI"><option value="10">10°C</option><option value="15">15°C</option><option value="20">20°C</option><option value="25">25°C</option><option value="30">30°C</option></select></div>
+    </div>
+    <div class="form-grid">
+      <div class="form-row"><label>Fecha SAOS planificada</label><input id="fDate" type="text" placeholder="DD/MM/AAAA" maxlength="10" oninput="autoFmtDate(this)"></div>
+      <div class="form-row"><label>Estado</label><select id="fSt"><option value="pendiente">Pendiente</option><option value="en progreso">En progreso</option><option value="completado">Completado</option><option value="omitido">Omitido</option></select></div>
+    </div>
+    <div class="form-row"><label>Notas</label><textarea id="fNotes" placeholder="Observaciones…"></textarea></div>
+    <div class="modal-footer">
+      <button class="btn" onclick="closeModal()">Cancelar</button>
+      <button class="btn btn-green" onclick="saveEntry()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ════════════════════════════════════════════════════════════
+// DATA
+// ════════════════════════════════════════════════════════════
+function mkEntry(id,code,serie,agg,repl,naoh,temp){
+  return{id,code,serie,agg,repl,naoh,temp,rheoDate:'',status:'pendiente',notes:'',
+    spec1:{fabDate:'',fabTime:'',checks:{}},
+    spec2:{fabDate:'',fabTime:'',checks:{}},
+    cubes:{active:false,fabDate:'',fabTime:'',checks:{}}};
+}
+let data=[
+  mkEntry(1,'REF-10','I','control','—','—','10'),
+  mkEntry(2,'REF-20','I','control','—','—','20'),
+  mkEntry(3,'REF-30','I','control','—','—','30'),
+  mkEntry(4,'F-15-2.5M-10','I','fino','15','2.5M','10'),
+  mkEntry(5,'F-15-2.5M-20','I','fino','15','2.5M','20'),
+  mkEntry(6,'F-15-2.5M-30','I','fino','15','2.5M','30'),
+  mkEntry(7,'F-15-3.25M-10','I','fino','15','3.25M','10'),
+  mkEntry(8,'F-15-3.25M-20','I','fino','15','3.25M','20'),
+  mkEntry(9,'F-15-3.25M-30','I','fino','15','3.25M','30'),
+  mkEntry(10,'F-15-4.0M-10','I','fino','15','4.0M','10'),
+  mkEntry(11,'F-15-4.0M-20','I','fino','15','4.0M','20'),
+  mkEntry(12,'F-15-4.0M-30','I','fino','15','4.0M','30'),
+  mkEntry(13,'F-25-2.5M-10','I','fino','25','2.5M','10'),
+  mkEntry(14,'F-25-2.5M-20','I','fino','25','2.5M','20'),
+  mkEntry(15,'F-25-2.5M-30','I','fino','25','2.5M','30'),
+  mkEntry(16,'F-25-3.25M-10','I','fino','25','3.25M','10'),
+  mkEntry(17,'F-25-3.25M-20','I','fino','25','3.25M','20'),
+  mkEntry(18,'F-25-3.25M-30','I','fino','25','3.25M','30'),
+  mkEntry(19,'F-25-4.0M-10','I','fino','25','4.0M','10'),
+  mkEntry(20,'F-25-4.0M-20','I','fino','25','4.0M','20'),
+  mkEntry(21,'F-25-4.0M-30','I','fino','25','4.0M','30'),
+  mkEntry(22,'G-15-2.5M-10','I','grueso','15','2.5M','10'),
+  mkEntry(23,'G-15-2.5M-20','I','grueso','15','2.5M','20'),
+  mkEntry(24,'G-15-2.5M-30','I','grueso','15','2.5M','30'),
+  mkEntry(25,'G-25-3.25M-10','I','grueso','25','3.25M','10'),
+  mkEntry(26,'G-25-3.25M-20','I','grueso','25','3.25M','20'),
+  mkEntry(27,'G-25-3.25M-30','I','grueso','25','3.25M','30'),
+  mkEntry(28,'A-15-3.25M-20','I','ambos','15','3.25M','20'),
+  mkEntry(29,'A-25-2.5M-20','I','ambos','25','2.5M','20'),
+  mkEntry(30,'A-25-4.0M-20','I','ambos','25','4.0M','20'),
+  mkEntry(31,'SII-REF-25','II','control','—','—','25'),
+  mkEntry(32,'SII-F-20-2.5M-15','II','fino','20','2.5M','15'),
+  mkEntry(33,'SII-F-20-3.25M-25','II','fino','20','3.25M','25'),
+  mkEntry(34,'SII-G-20-4.0M-15','II','grueso','20','4.0M','15'),
+  mkEntry(35,'SII-G-20-3.25M-25','II','grueso','20','3.25M','25'),
+  mkEntry(36,'SII-A-20-3.25M-25','II','ambos','20','3.25M','25'),
+];
+data[0].notes='Mezcla de referencia';data[1].notes='Mezcla de referencia';data[2].notes='Mezcla de referencia';
+data[27].notes='Reemplazo fino+grueso';data[28].notes='Reemplazo fino+grueso';data[29].notes='Reemplazo fino+grueso';
+data[30].notes='Control Serie II';data[31].notes='T intermedia';data[32].notes='T intermedia';
+data[33].notes='Validación grueso';data[34].notes='Validación grueso';data[35].notes='Validación combinado';
+
+let nextId=37,sortCol='id',sortDir='asc',currentTab='rheology',openPanelId=null;
+let calYear=new Date().getFullYear(),calMonth=new Date().getMonth(),calViewMode='month';
+
+// ── SCHEDULE ──────────────────────────────────────────────────
+const RET_STEPS=[
+  {key:'d8h',  label:'Desmolde',offset:8*60,       note:'t=0 desde desmolde'},
+  {key:'d15',  label:'15 min',  offset:8*60+15,    note:'15 min post desmolde'},
+  {key:'d45',  label:'45 min',  offset:8*60+45,    note:'45 min post desmolde'},
+  {key:'d90',  label:'90 min',  offset:8*60+90,    note:'90 min post desmolde'},
+  {key:'d180', label:'3 h',     offset:8*60+180,   note:'180 min post desmolde'},
+  {key:'d1d',  label:'1 día',   offset:24*60,      note:'1 día post fabricación'},
+  {key:'d2d',  label:'2 días',  offset:2*24*60,    note:'2 días post fabricación'},
+  {key:'d7d',  label:'7 días',  offset:7*24*60,    note:'7 días post fabricación'},
+  {key:'d14d', label:'14 días', offset:14*24*60,   note:'14 días post fabricación'},
+  {key:'d21d', label:'21 días', offset:21*24*60,   note:'21 días post fabricación'},
+  {key:'d28d', label:'28 días', offset:28*24*60,   note:'28 días post fabricación'},
+];
+const COMP_STEPS=[
+  {key:'c7d',  label:'Compresión 7d', offset:7*24*60},
+  {key:'c28d', label:'Compresión 28d',offset:28*24*60},
+];
+
+// ── HELPERS ──────────────────────────────────────────────────
+// Dates stored internally as "DD/MM/AAAA", time as "HH:MM"
+
+// Parse "DD/MM/AAAA" → {d,m,y} or null
+function parseDMY(s){
+  if(!s) return null;
+  const parts=s.trim().split('/');
+  if(parts.length!==3) return null;
+  const d=parseInt(parts[0]),m=parseInt(parts[1]),y=parseInt(parts[2]);
+  if(isNaN(d)||isNaN(m)||isNaN(y)||y<100) return null;
+  if(m<1||m>12||d<1||d>31) return null;
+  return {d,m,y};
+}
+
+// Parse "HH:MM" → {hh,mm} or null
+function parseHM(s){
+  if(!s) return null;
+  const parts=s.trim().split(':');
+  if(parts.length<2) return null;
+  const hh=parseInt(parts[0]),mm=parseInt(parts[1]);
+  if(isNaN(hh)||isNaN(mm)) return null;
+  return {hh,mm};
+}
+
+function addMin(dateStr,timeStr,minutes){
+  const dmy=parseDMY(dateStr);
+  const hm=parseHM(timeStr);
+  if(!dmy||!hm) return null;
+  return new Date(dmy.y,dmy.m-1,dmy.d,hm.hh,hm.mm+minutes);
+}
+function toDateKey(dt){
+  // key used for calendar grouping: "YYYY-MM-DD" (internal only, never shown)
+  if(!dt||isNaN(dt)) return '';
+  const pad=n=>String(n).padStart(2,'0');
+  return `${dt.getFullYear()}-${pad(dt.getMonth()+1)}-${pad(dt.getDate())}`;
+}
+// Convert stored "DD/MM/AAAA" to "YYYY-MM-DD" key for calendar
+function dateToKey(ds){
+  const dmy=parseDMY(ds);
+  if(!dmy) return '';
+  const pad=n=>String(n).padStart(2,'0');
+  return `${dmy.y}-${pad(dmy.m)}-${pad(dmy.d)}`;
+}
+function fmtDT(dt){
+  if(!dt||isNaN(dt)) return '—';
+  const pad=n=>String(n).padStart(2,'0');
+  return `${pad(dt.getDate())}/${pad(dt.getMonth()+1)}/${dt.getFullYear()} ${pad(dt.getHours())}:${pad(dt.getMinutes())}`;
+}
+function fmtDateShort(ds){
+  if(!ds||!parseDMY(ds)) return '<span style="color:var(--text3)">—</span>';
+  return ds; // already "DD/MM/AAAA"
+}
+
+// Auto-format date input as user types: inserts slashes automatically
+function autoFmtDate(input){
+  let v=input.value.replace(/\D/g,'');
+  if(v.length>2) v=v.slice(0,2)+'/'+v.slice(2);
+  if(v.length>5) v=v.slice(0,5)+'/'+v.slice(5);
+  if(v.length>10) v=v.slice(0,10);
+  input.value=v;
+  // visual validation
+  const dmy=parseDMY(v);
+  input.style.borderColor=(v.length===10&&dmy)?'var(--green-border)':'var(--border)';
+}
+// Auto-format time input: inserts colon
+function autoFmtTime(input){
+  let v=input.value.replace(/\D/g,'');
+  if(v.length>2) v=v.slice(0,2)+':'+v.slice(2);
+  if(v.length>5) v=v.slice(0,5);
+  input.value=v;
+  const hm=parseHM(v);
+  input.style.borderColor=(v.length>=4&&hm)?'var(--green-border)':'var(--border)';
+}
+const MONTHS_ES=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const DAYS_ES=['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'];
+
+// ── COLLECT ALL EVENTS ─────────────────────────────────────────
+// Returns array of {dateKey, time, type:'saos'|'ret'|'comp', code, label, done, id, specKey}
+function collectAllEvents(){
+  const events=[];
+  for(const d of data){
+    // SAOS
+    if(d.rheoDate){
+      const dk=dateToKey(d.rheoDate);
+      if(dk) events.push({dateKey:dk,time:'',type:'saos',code:d.code,label:'SAOS',
+        done:d.status==='completado',id:d.id,specKey:null});
+    }
+    // Retracción spec1 & spec2
+    for(const sk of ['spec1','spec2']){
+      const sp=d[sk];
+      if(!sp.fabDate||!sp.fabTime) continue;
+      const snum=sk==='spec1'?1:2;
+      for(const s of RET_STEPS){
+        const dt=addMin(sp.fabDate,sp.fabTime,s.offset);
+        if(!dt) continue;
+        events.push({dateKey:toDateKey(dt),time:`${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`,
+          type:'ret',code:d.code,label:`E${snum} ${s.label}`,done:!!(sp.checks&&sp.checks[s.key]),
+          id:d.id,specKey:sk,stepKey:s.key});
+      }
+    }
+    // Compresión
+    const c=d.cubes;
+    if(c&&c.active&&c.fabDate&&c.fabTime){
+      for(const s of COMP_STEPS){
+        const dt=addMin(c.fabDate,c.fabTime,s.offset);
+        if(!dt) continue;
+        events.push({dateKey:toDateKey(dt),time:`${String(dt.getHours()).padStart(2,'0')}:${String(dt.getMinutes()).padStart(2,'0')}`,
+          type:'comp',code:d.code,label:s.label,done:!!(c.checks&&c.checks[s.key]),
+          id:d.id,specKey:'cubes',stepKey:s.key});
+      }
+    }
+  }
+  events.sort((a,b)=>(a.dateKey+a.time).localeCompare(b.dateKey+b.time));
+  return events;
+}
+
+// ── MAPS ─────────────────────────────────────────────────────
+const STATUS_MAP={
+  'pendiente':  '<span class="badge badge-pend">○ Pendiente</span>',
+  'en progreso':'<span class="badge badge-prog">◐ En progreso</span>',
+  'completado': '<span class="badge badge-done">● Completado</span>',
+  'omitido':    '<span class="badge badge-skip">— Omitido</span>',
+};
+const SERIE_MAP={'I':'<span class="badge badge-s1">Serie I</span>','II':'<span class="badge badge-s2">Serie II</span>'};
+const AGG_MAP={
+  'fino':   '<span class="badge badge-fino">fino</span>',
+  'grueso': '<span class="badge badge-grueso">grueso</span>',
+  'ambos':  '<span class="badge badge-ambos">ambos</span>',
+  'control':'<span class="badge badge-control">control</span>',
+};
+
+// ── TABS ─────────────────────────────────────────────────────
+function switchTab(t){
+  currentTab=t;
+  document.querySelectorAll('.view').forEach(v=>v.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(n=>n.classList.remove('active'));
+  document.getElementById('view-'+t).classList.add('active');
+  const tabs=['rheology','shrinkage','calendar'];
+  document.querySelectorAll('.nav-tab')[tabs.indexOf(t)].classList.add('active');
+  if(t==='shrinkage') renderShrink();
+  if(t==='calendar') renderCal();
+}
+
+// ── SORT / FILTER ─────────────────────────────────────────────
+function sortBy(col){
+  if(sortCol===col) sortDir=sortDir==='asc'?'desc':'asc';
+  else{sortCol=col;sortDir='asc';}
+  document.querySelectorAll('th').forEach(th=>th.classList.remove('sort-asc','sort-desc'));
+  const th=document.getElementById('th-'+col);
+  if(th) th.classList.add('sort-'+sortDir);
+  renderRheo();
+}
+function getFiltered(){
+  const q=document.getElementById('search').value.toLowerCase();
+  const fS=document.getElementById('fSerie').value;
+  const fSt=document.getElementById('fStatus').value;
+  const fT=document.getElementById('fTemp').value;
+  const fA=document.getElementById('fAgg').value;
+  return data.filter(d=>{
+    if(fS&&d.serie!==fS) return false;
+    if(fSt&&d.status!==fSt) return false;
+    if(fT&&d.temp!==fT) return false;
+    if(fA&&d.agg!==fA) return false;
+    if(q&&!(d.code.toLowerCase().includes(q)||d.notes.toLowerCase().includes(q))) return false;
+    return true;
+  });
+}
+
+// ── RENDER RHEO ──────────────────────────────────────────────
+function renderRheo(){
+  let fl=getFiltered();
+  fl.sort((a,b)=>{
+    let va=a[sortCol]||'',vb=b[sortCol]||'';
+    if(['repl','temp','id'].includes(sortCol)){va=parseFloat(va)||0;vb=parseFloat(vb)||0;}
+    return sortDir==='asc'?(va<vb?-1:va>vb?1:0):(va<vb?1:va>vb?-1:0);
+  });
+  const total=data.length,done=data.filter(d=>d.status==='completado').length;
+  const prog=data.filter(d=>d.status==='en progreso').length,pend=data.filter(d=>d.status==='pendiente').length;
+  const pct=total?Math.round(done/total*100):0;
+  document.getElementById('sTotal').textContent=total;
+  document.getElementById('sDone').textContent=done;
+  document.getElementById('sProg').textContent=prog;
+  document.getElementById('sPend').textContent=pend;
+  document.getElementById('progFill').style.width=pct+'%';
+  document.getElementById('progPct').textContent=pct+'%';
+  document.getElementById('hBadgeTotal').textContent=total+' ensayos';
+  const tbody=document.getElementById('tbody');
+  const empty=document.getElementById('emptyMsg');
+  if(!fl.length){tbody.innerHTML='';empty.style.display='block';return;}
+  empty.style.display='none';
+  tbody.innerHTML=fl.map(d=>{
+    const hasRet=d.spec1.fabDate||d.spec2.fabDate;
+    const hasCubes=d.cubes&&d.cubes.active;
+    const p2=`<span style="display:flex;gap:4px;align-items:center">
+      ${hasRet?'<span class="badge badge-mini" style="background:#0d2b14;color:#39d353;border-color:#1a4523">Ret.</span>':'<span style="color:var(--text3);font-size:11px;font-family:var(--mono)">—</span>'}
+      ${hasCubes?'<span class="badge badge-mini" style="background:var(--orange-bg);color:var(--orange);border-color:var(--orange-border)">Cubos</span>':''}
+    </span>`;
+    return `<tr onclick="openRheoDetail(${d.id})">
+      <td class="code-cell">${d.code}</td>
+      <td>${SERIE_MAP[d.serie]||d.serie}</td>
+      <td>${AGG_MAP[d.agg]||d.agg}</td>
+      <td class="repl-cell">${d.repl!=='—'?d.repl+'%':'<span style="color:var(--text3)">—</span>'}</td>
+      <td class="naoh-cell">${d.naoh}</td>
+      <td class="temp-cell">${d.temp}°C</td>
+      <td class="date-cell">${d.rheoDate||'<span style="color:var(--text3)">—</span>'}</td>
+      <td>${STATUS_MAP[d.status]||d.status}</td>
+      <td>${p2}</td>
+      <td class="notes-cell" title="${d.notes}">${d.notes||'<span style="color:var(--text3)">—</span>'}</td>
+      <td onclick="event.stopPropagation()"><button class="btn btn-sm" onclick="deleteEntry(${d.id})">✕</button></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('lastUpdate').textContent='Actualizado: '+new Date().toLocaleString('es-CL');
+}
+
+// ── RENDER SHRINK ────────────────────────────────────────────
+function renderShrink(){
+  const q=document.getElementById('search2').value.toLowerCase();
+  const fS=document.getElementById('fSerie2').value;
+  const fH=document.getElementById('fHasData').value;
+  let fl=data.filter(d=>{
+    if(fS&&d.serie!==fS) return false;
+    const hasData=!!(d.spec1.fabDate||d.spec2.fabDate);
+    if(fH==='1'&&!hasData) return false;
+    if(fH==='0'&&hasData) return false;
+    if(q&&!d.code.toLowerCase().includes(q)) return false;
+    return true;
+  });
+  const tbody=document.getElementById('tbody2');
+  if(!fl.length){tbody.innerHTML='';document.getElementById('emptyMsg2').style.display='block';return;}
+  document.getElementById('emptyMsg2').style.display='none';
+  const now=Date.now();
+  tbody.innerHTML=fl.map(d=>{
+    const s1=d.spec1.fabDate?`<span style="color:var(--text2);font-family:var(--mono);font-size:12px">${d.spec1.fabDate} ${d.spec1.fabTime}</span>`:'<span style="color:var(--text3);font-size:12px">—</span>';
+    const s2=d.spec2.fabDate?`<span style="color:var(--text2);font-family:var(--mono);font-size:12px">${d.spec2.fabDate} ${d.spec2.fabTime}</span>`:'<span style="color:var(--text3);font-size:12px">—</span>';
+    const cubeCell=d.cubes&&d.cubes.active?`<span class="badge" style="background:var(--orange-bg);color:var(--orange);border-color:var(--orange-border)">✓ ${d.cubes.fabDate||'sin fecha'}</span>`:'<span style="color:var(--text3);font-size:12px">No</span>';
+    let nxt=null;
+    for(const sk of ['spec1','spec2']){
+      const sp=d[sk];
+      for(const s of RET_STEPS){
+        if(sp.checks[s.key]) continue;
+        const dt=addMin(sp.fabDate,sp.fabTime,s.offset);
+        if(!dt) continue;
+        if(!nxt||dt<nxt.dt) nxt={dt,label:(sk==='spec1'?'E1':'E2')+' '+s.label};
+      }
+    }
+    if(d.cubes&&d.cubes.active){
+      for(const s of COMP_STEPS){
+        if(d.cubes.checks&&d.cubes.checks[s.key]) continue;
+        const dt=addMin(d.cubes.fabDate,d.cubes.fabTime,s.offset);
+        if(!dt) continue;
+        if(!nxt||dt<nxt.dt) nxt={dt,label:'Comp: '+s.label};
+      }
+    }
+    let nxtCell='<span style="color:var(--text3);font-size:12px">—</span>';
+    if(nxt){
+      const late=nxt.dt<now;
+      nxtCell=`<span style="font-family:var(--mono);font-size:11px;color:${late?'var(--red)':'var(--green)'}">${late?'⚠ ':''}${nxt.label}<br><span style="color:var(--text3)">${fmtDT(nxt.dt)}</span></span>`;
+    }
+    return `<tr onclick="openShrinkDetail(${d.id})">
+      <td class="code-cell">${d.code}</td>
+      <td>${SERIE_MAP[d.serie]||d.serie}</td>
+      <td>${AGG_MAP[d.agg]||d.agg}</td>
+      <td>${s1}</td><td>${s2}</td><td>${cubeCell}</td><td>${nxtCell}</td>
+      <td onclick="event.stopPropagation()"><button class="btn btn-sm btn-blue" onclick="openShrinkDetail(${d.id})">Calendario</button></td>
+    </tr>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════════════════════
+// CALENDAR RENDER
+// ════════════════════════════════════════════════════════════
+function setCalView(mode){
+  calViewMode=mode;
+  document.getElementById('vtMonth').classList.toggle('active',mode==='month');
+  document.getElementById('vtAgenda').classList.toggle('active',mode==='agenda');
+  document.getElementById('calMonthView').style.display=mode==='month'?'':'none';
+  document.getElementById('calAgendaView').style.display=mode==='agenda'?'':'none';
+  renderCal();
+}
+function calPrev(){if(calViewMode==='month'){calMonth--;if(calMonth<0){calMonth=11;calYear--;}}else{calYear--;} renderCal();}
+function calNext(){if(calViewMode==='month'){calMonth++;if(calMonth>11){calMonth=0;calYear++;}}else{calYear++;} renderCal();}
+function calToday(){calYear=new Date().getFullYear();calMonth=new Date().getMonth();renderCal();}
+
+function renderCal(){
+  const fType=document.getElementById('calFilter').value;
+  const allEvents=collectAllEvents().filter(e=>!fType||e.type===fType);
+  // group by dateKey
+  const byDate={};
+  for(const ev of allEvents){
+    if(!byDate[ev.dateKey]) byDate[ev.dateKey]=[];
+    byDate[ev.dateKey].push(ev);
+  }
+
+  if(calViewMode==='month') renderCalMonth(byDate);
+  else renderCalAgenda(allEvents);
+}
+
+function renderCalMonth(byDate){
+  document.getElementById('calMonthLabel').textContent=`${MONTHS_ES[calMonth]} ${calYear}`;
+  // DOW header
+  const dowRow=document.getElementById('calDowRow');
+  dowRow.innerHTML=DAYS_ES.map(d=>`<div class="cal-dow">${d}</div>`).join('');
+
+  const today=toDateKey(new Date());
+  const firstDay=new Date(calYear,calMonth,1).getDay(); // 0=Sun
+  const daysInMonth=new Date(calYear,calMonth+1,0).getDate();
+  const daysInPrev=new Date(calYear,calMonth,0).getDate();
+
+  const cells=[];
+  // prev month padding
+  for(let i=firstDay-1;i>=0;i--){
+    const d=daysInPrev-i;
+    const m=calMonth===0?11:calMonth-1;
+    const y=calMonth===0?calYear-1:calYear;
+    const pad=n=>String(n).padStart(2,'0');
+    cells.push({day:d,month:m,year:y,key:`${y}-${pad(m+1)}-${pad(d)}`,other:true});
+  }
+  // current month
+  for(let d=1;d<=daysInMonth;d++){
+    const pad=n=>String(n).padStart(2,'0');
+    cells.push({day:d,month:calMonth,year:calYear,key:`${calYear}-${pad(calMonth+1)}-${pad(d)}`,other:false});
+  }
+  // next month padding to complete grid (multiples of 7)
+  let nd=1;
+  while(cells.length%7!==0){
+    const m=calMonth===11?0:calMonth+1;
+    const y=calMonth===11?calYear+1:calYear;
+    const pad=n=>String(n).padStart(2,'0');
+    cells.push({day:nd,month:m,year:y,key:`${y}-${pad(m+1)}-${pad(nd)}`,other:true});
+    nd++;
+  }
+
+  const MAX_VISIBLE=4;
+  const grid=document.getElementById('calDaysGrid');
+  grid.innerHTML=cells.map(c=>{
+    const evs=byDate[c.key]||[];
+    const isToday=c.key===today;
+    const visible=evs.slice(0,MAX_VISIBLE);
+    const more=evs.length-MAX_VISIBLE;
+    const evHTML=visible.map(ev=>
+      `<div class="cal-ev type-${ev.type}${ev.done?' done':''}" title="${ev.code}: ${ev.label} ${ev.time}" onclick="openEntryFromCalendar(event,${ev.id})">${ev.code.length>10?ev.code.substring(0,10)+'…':ev.code}: ${ev.label}</div>`
+    ).join('');
+    const moreHTML=more>0?`<div class="cal-more" onclick="showDayPopover(event,'${c.key}')">+${more} más…</div>`:'';
+    return `<div class="cal-day${c.other?' other-month':''}${isToday?' today':''}" onclick="showDayPopover(event,'${c.key}')">
+      <span class="cal-dn">${c.day}</span>
+      <div class="cal-events">${evHTML}${moreHTML}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderCalAgenda(allEvents){
+  document.getElementById('calMonthLabel').textContent=`${calYear}`;
+  // group by week
+  const byWeek={};
+  for(const ev of allEvents){
+    if(!ev.dateKey) continue;
+    const [y,m,d]=ev.dateKey.split('-').map(Number);
+    if(y!==calYear) continue;
+    const dt=new Date(y,m-1,d);
+    const jan1=new Date(y,0,1);
+    const week=Math.ceil(((dt-jan1)/(86400000)+jan1.getDay()+1)/7);
+    const wk=`${y}-W${String(week).padStart(2,'0')}`;
+    if(!byWeek[wk]) byWeek[wk]={label:'',days:{}};
+    // week label: monday of that week
+    const mon=new Date(dt);mon.setDate(dt.getDate()-(dt.getDay()||7)+1);
+    const sun=new Date(mon);sun.setDate(mon.getDate()+6);
+    const pad=n=>String(n).padStart(2,'0');
+    byWeek[wk].label=`Semana ${week} — ${pad(mon.getDate())}/${pad(mon.getMonth()+1)} al ${pad(sun.getDate())}/${pad(sun.getMonth()+1)}`;
+    if(!byWeek[wk].days[ev.dateKey]) byWeek[wk].days[ev.dateKey]=[];
+    byWeek[wk].days[ev.dateKey].push(ev);
+  }
+
+  const today=toDateKey(new Date());
+  const sorted=Object.keys(byWeek).sort();
+  if(!sorted.length){
+    document.getElementById('agendaContent').innerHTML='<div class="empty">No hay ensayos programados para '+calYear+'. Asigna fechas en las pestañas anteriores.</div>';
+    return;
+  }
+  document.getElementById('agendaContent').innerHTML=sorted.map(wk=>{
+    const w=byWeek[wk];
+    const daysSorted=Object.keys(w.days).sort();
+    const dayRows=daysSorted.map(dk=>{
+      const [y,m,d]=dk.split('-').map(Number);
+      const dt=new Date(y,m-1,d);
+      const dowName=DAYS_ES[dt.getDay()];
+      const pad=n=>String(n).padStart(2,'0');
+      const label=`${dowName} ${pad(d)}/${pad(m)}`;
+      const isToday=dk===today;
+      const evRows=w.days[dk].map(ev=>
+        `<div class="agenda-ev type-${ev.type}${ev.done?' done':''}" onclick="openEntryFromCalendar(event,${ev.id})" style="cursor:pointer">${ev.time?ev.time+' — ':''}<strong>${ev.code}</strong>: ${ev.label}</div>`
+      ).join('');
+      return `<div class="agenda-day-row">
+        <div class="agenda-date-col${isToday?' today-date':''}">${label}</div>
+        <div class="agenda-evs-col">${evRows}</div>
+      </div>`;
+    }).join('');
+    return `<div class="agenda-week">
+      <div class="agenda-week-hdr">${w.label}<span style="font-size:11px">${Object.values(w.days).flat().length} ensayos</span></div>
+      <div class="agenda-day-group">${dayRows}</div>
+    </div>`;
+  }).join('');
+}
+
+// ── DAY POPOVER ──────────────────────────────────────────────
+function showDayPopover(e,dateKey){
+  e.stopPropagation();
+  const allEvents=collectAllEvents();
+  const evs=allEvents.filter(ev=>ev.dateKey===dateKey);
+  if(!evs.length) return;
+  const [y,m,d]=dateKey.split('-').map(Number);
+  const pad=n=>String(n).padStart(2,'0');
+  document.getElementById('popDate').textContent=`${pad(d)}/${pad(m)}/${y} — ${evs.length} ensayo${evs.length>1?'s':''}`;
+  document.getElementById('popEvents').innerHTML=evs.map(ev=>
+    `<div class="pop-ev type-${ev.type}" onclick="openEntryFromCalendar(event,${ev.id})" style="cursor:pointer">${ev.time?'<span style="opacity:.6">'+ev.time+'</span> ':''}<strong>${ev.code}</strong> — ${ev.label}${ev.done?' ✓':''}</div>`
+  ).join('');
+  const pop=document.getElementById('dayPopover');
+  pop.style.display='block';
+  const rect=e.target.getBoundingClientRect();
+  let left=rect.left+window.scrollX;
+  let top=rect.bottom+window.scrollY+4;
+  if(left+320>window.innerWidth) left=window.innerWidth-330;
+  if(top+300>window.innerHeight+window.scrollY) top=rect.top+window.scrollY-310;
+  pop.style.left=left+'px';
+  pop.style.top=top+'px';
+}
+function closePopover(){document.getElementById('dayPopover').style.display='none';}
+function openEntryFromCalendar(e,id){
+  e.stopPropagation();
+  closePopover();
+  openShrinkDetail(id);
+}
+
+// ── PANEL ────────────────────────────────────────────────────
+function openRheoDetail(id){
+  const d=data.find(x=>x.id===id);if(!d) return;
+  openPanelId=id;
+  document.getElementById('panelCode').textContent=d.code;
+  document.getElementById('panelBadges').innerHTML=(SERIE_MAP[d.serie]||'')+' '+(AGG_MAP[d.agg]||'');
+  document.getElementById('panelBody').innerHTML=`
+    <div class="meta-grid">
+      <div class="meta-item"><div class="meta-val">${d.temp}°C</div><div class="meta-lbl">Temperatura</div></div>
+      <div class="meta-item"><div class="meta-val">${d.naoh}</div><div class="meta-lbl">NaOH</div></div>
+      <div class="meta-item"><div class="meta-val">${d.repl!=='—'?d.repl+'%':'—'}</div><div class="meta-lbl">Reemplazo</div></div>
+    </div>
+    <div class="sec-card">
+      <div class="sec-card-header" onclick="toggleSec('rheo-edit')">
+        <span class="sec-card-title">⚙ Datos SAOS</span><span style="color:var(--text3);font-size:12px">▾</span>
+      </div>
+      <div class="sec-card-body" id="rheo-edit">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+          <div class="pform-row"><label>Fecha SAOS</label><input type="text" placeholder="DD/MM/AAAA" maxlength="10" value="${d.rheoDate}" oninput="autoFmtDate(this)" onchange="saveRheoField(${id},'rheoDate',this.value)"></div>
+          <div class="pform-row"><label>Estado</label>
+            <select onchange="saveRheoField(${id},'status',this.value)">
+              <option value="pendiente" ${d.status==='pendiente'?'selected':''}>Pendiente</option>
+              <option value="en progreso" ${d.status==='en progreso'?'selected':''}>En progreso</option>
+              <option value="completado" ${d.status==='completado'?'selected':''}>Completado</option>
+              <option value="omitido" ${d.status==='omitido'?'selected':''}>Omitido</option>
+            </select>
+          </div>
+        </div>
+        <div class="pform-row"><label>Notas</label><textarea onchange="saveRheoField(${id},'notes',this.value)">${d.notes}</textarea></div>
+      </div>
+    </div>
+    ${shrinkPanelHTML(d)}
+  `;
+  openPanel();
+}
+function openShrinkDetail(id){
+  const d=data.find(x=>x.id===id);if(!d) return;
+  openPanelId=id;
+  document.getElementById('panelCode').textContent=d.code;
+  document.getElementById('panelBadges').innerHTML=(SERIE_MAP[d.serie]||'')+' '+(AGG_MAP[d.agg]||'');
+  document.getElementById('panelBody').innerHTML=`
+    <div class="meta-grid">
+      <div class="meta-item"><div class="meta-val">${d.temp}°C</div><div class="meta-lbl">Temperatura</div></div>
+      <div class="meta-item"><div class="meta-val">${d.naoh}</div><div class="meta-lbl">NaOH</div></div>
+      <div class="meta-item"><div class="meta-val">${d.repl!=='—'?d.repl+'%':'—'}</div><div class="meta-lbl">Reemplazo</div></div>
+    </div>
+    ${shrinkPanelHTML(d)}
+  `;
+  openPanel();
+}
+function shrinkPanelHTML(d){
+  return specSection(d,'spec1',1)+specSection(d,'spec2',2)+cubeSection(d);
+}
+function specSection(d,key,num){
+  const sp=d[key];
+  const hasDate=!!(sp.fabDate&&sp.fabTime);
+  const rows=hasDate?RET_STEPS.map(s=>{
+    const dt=addMin(sp.fabDate,sp.fabTime,s.offset);
+    const checked=!!(sp.checks&&sp.checks[s.key]);
+    const past=dt&&dt<new Date()&&!checked;
+    return `<tr class="${checked?'past':past?'past':''}">
+      <td class="check-col"><input type="checkbox" ${checked?'checked':''} onchange="toggleCheck(${d.id},'${key}','${s.key}',this.checked)"></td>
+      <td class="sched-type-ret">${s.label}</td>
+      <td style="color:var(--text3);font-size:11px">${s.note}</td>
+      <td style="font-size:11px">${fmtDT(dt)}</td>
+    </tr>`;
+  }).join(''):'';
+  return `<div class="sec-card">
+    <div class="sec-card-header" onclick="toggleSec('spec-${d.id}-${key}')">
+      <span class="sec-card-title" style="color:#39d353">📏 Espécimen ${num} — Retracción</span>
+      <span style="color:var(--text3);font-size:12px">${hasDate?'<span style="color:#39d353;font-size:10px">● con datos</span>':'sin fecha'} ▾</span>
+    </div>
+    <div class="sec-card-body" id="spec-${d.id}-${key}">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+        <div class="pform-row"><label>Fecha fabricación</label>
+          <input type="text" placeholder="DD/MM/AAAA" maxlength="10" value="${sp.fabDate}" oninput="autoFmtDate(this)" onchange="saveSpec(${d.id},'${key}','fabDate',this.value)">
+        </div>
+        <div class="pform-row"><label>Hora fabricación</label>
+          <input type="text" placeholder="HH:MM" maxlength="5" value="${sp.fabTime}" oninput="autoFmtTime(this)" onchange="saveSpec(${d.id},'${key}','fabTime',this.value)">
+        </div>
+      </div>
+      ${hasDate?`<table class="sched-table">
+        <thead><tr><th style="width:28px">✓</th><th>Medición</th><th>Referencia</th><th>Fecha / Hora</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`:`<p style="color:var(--text3);font-size:12px;font-family:var(--mono)">Ingrese fecha y hora para generar el calendario.</p>`}
+    </div>
+  </div>`;
+}
+function cubeSection(d){
+  const c=d.cubes;
+  const isActive=c&&c.active;
+  const hasDate=!!(isActive&&c.fabDate&&c.fabTime);
+  const rows=hasDate?COMP_STEPS.map(s=>{
+    const dt=addMin(c.fabDate,c.fabTime,s.offset);
+    const checked=!!(c.checks&&c.checks[s.key]);
+    return `<tr>
+      <td class="check-col"><input type="checkbox" ${checked?'checked':''} onchange="toggleCheck(${d.id},'cubes','${s.key}',this.checked)"></td>
+      <td class="sched-type-comp">${s.label}</td>
+      <td style="color:var(--text3);font-size:11px">${s.offset/(24*60)} días</td>
+      <td style="font-size:11px">${fmtDT(dt)}</td>
+    </tr>`;
+  }).join(''):'';
+  return `<div class="sec-card">
+    <div class="sec-card-header" onclick="toggleSec('cubes-${d.id}')">
+      <span class="sec-card-title" style="color:var(--orange)">🧱 Cubos — Compresión</span>
+      <span style="color:var(--text3);font-size:12px">${isActive?'<span style="color:var(--orange);font-size:10px">● activo</span>':'no fabricados'} ▾</span>
+    </div>
+    <div class="sec-card-body" id="cubes-${d.id}">
+      <div class="checkbox-row" style="margin-bottom:10px">
+        <input type="checkbox" id="ctog-${d.id}" ${isActive?'checked':''} onchange="toggleCubeActive(${d.id},this.checked)">
+        <label for="ctog-${d.id}">Se fabricaron cubos para esta mezcla</label>
+      </div>
+      ${isActive?`<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px">
+        <div class="pform-row"><label>Fecha fabricación cubos</label><input type="text" placeholder="DD/MM/AAAA" maxlength="10" value="${c.fabDate}" oninput="autoFmtDate(this)" onchange="saveCube(${d.id},'fabDate',this.value)"></div>
+        <div class="pform-row"><label>Hora fabricación cubos</label><input type="text" placeholder="HH:MM" maxlength="5" value="${c.fabTime}" oninput="autoFmtTime(this)" onchange="saveCube(${d.id},'fabTime',this.value)"></div>
+      </div>
+      ${hasDate?`<table class="sched-table">
+        <thead><tr><th style="width:28px">✓</th><th>Ensayo</th><th>Referencia</th><th>Fecha / Hora</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>`:`<p style="color:var(--text3);font-size:12px;font-family:var(--mono)">Ingrese fecha y hora de fabricación de cubos.</p>`}`
+      :'<p style="color:var(--text3);font-size:12px;font-family:var(--mono)">Marque la casilla si se fabricaron cubos.</p>'}
+    </div>
+  </div>`;
+}
+
+// ── SAVE ────────────────────────────────────────────────────
+function saveRheoField(id,field,val){
+  const d=data.find(x=>x.id===id);if(d){d[field]=val;renderRheo();if(currentTab==='calendar')renderCal();}
+}
+function saveSpec(id,specKey,field,val){
+  const d=data.find(x=>x.id===id);
+  if(d){d[specKey][field]=val;refreshPanel(id);renderShrink();if(currentTab==='calendar')renderCal();}
+}
+function saveCube(id,field,val){
+  const d=data.find(x=>x.id===id);
+  if(d){if(!d.cubes)d.cubes={active:true,fabDate:'',fabTime:'',checks:{}};d.cubes[field]=val;refreshPanel(id);renderShrink();if(currentTab==='calendar')renderCal();}
+}
+function toggleCubeActive(id,val){
+  const d=data.find(x=>x.id===id);
+  if(d){if(!d.cubes)d.cubes={active:false,fabDate:'',fabTime:'',checks:{}};d.cubes.active=val;refreshPanel(id);renderRheo();renderShrink();if(currentTab==='calendar')renderCal();}
+}
+function toggleCheck(id,section,key,val){
+  const d=data.find(x=>x.id===id);
+  if(d){
+    if(section==='cubes'){if(!d.cubes)d.cubes={active:true,fabDate:'',fabTime:'',checks:{}};d.cubes.checks[key]=val;}
+    else{d[section].checks[key]=val;}
+    renderShrink();
+  }
+}
+function toggleSec(id){const el=document.getElementById(id);if(el)el.classList.toggle('hidden');}
+function refreshPanel(id){if(openPanelId===id){if(currentTab==='rheology')openRheoDetail(id);else openShrinkDetail(id);}}
+
+// ── PANEL OPEN/CLOSE ─────────────────────────────────────────
+function openPanel(){
+  document.getElementById('detailPanel').classList.add('open');
+  document.getElementById('panelScrim').classList.add('open');
+}
+function closePanel(){
+  document.getElementById('detailPanel').classList.remove('open');
+  document.getElementById('panelScrim').classList.remove('open');
+  openPanelId=null;
+}
+
+// ── MODAL ────────────────────────────────────────────────────
+function openModal(entry=null){
+  document.getElementById('modalTitle').textContent=entry?'Editar ensayo':'Nuevo ensayo';
+  document.getElementById('editId').value=entry?entry.id:'';
+  document.getElementById('fCode').value=entry?entry.code:'';
+  document.getElementById('fSerieI').value=entry?entry.serie:'I';
+  document.getElementById('fAggI').value=entry?entry.agg:'fino';
+  document.getElementById('fRepl').value=(entry&&entry.repl!=='—')?entry.repl:'';
+  document.getElementById('fNaOH').value=entry?entry.naoh:'2.5M';
+  document.getElementById('fTempI').value=entry?entry.temp:'20';
+  document.getElementById('fDate').value=entry?entry.rheoDate:'';
+  document.getElementById('fSt').value=entry?entry.status:'pendiente';
+  document.getElementById('fNotes').value=entry?entry.notes:'';
+  document.getElementById('modalOverlay').classList.add('open');
+  setTimeout(()=>document.getElementById('fCode').focus(),50);
+}
+function closeModal(e){
+  if(!e||e.target===document.getElementById('modalOverlay'))
+    document.getElementById('modalOverlay').classList.remove('open');
+}
+function saveEntry(){
+  const code=document.getElementById('fCode').value.trim();
+  if(!code){alert('El código es obligatorio.');return;}
+  const id=document.getElementById('editId').value;
+  const replVal=document.getElementById('fRepl').value;
+  const existing=id?data.find(d=>d.id===parseInt(id)):null;
+  const entry={
+    id:id?parseInt(id):nextId++,code,
+    serie:document.getElementById('fSerieI').value,
+    agg:document.getElementById('fAggI').value,
+    repl:replVal||'—',
+    naoh:document.getElementById('fNaOH').value,
+    temp:document.getElementById('fTempI').value,
+    rheoDate:document.getElementById('fDate').value,
+    status:document.getElementById('fSt').value,
+    notes:document.getElementById('fNotes').value.trim(),
+    spec1:existing?existing.spec1:{fabDate:'',fabTime:'',checks:{}},
+    spec2:existing?existing.spec2:{fabDate:'',fabTime:'',checks:{}},
+    cubes:existing?existing.cubes:{active:false,fabDate:'',fabTime:'',checks:{}},
+  };
+  if(id){const i=data.findIndex(d=>d.id===parseInt(id));if(i>-1)data[i]=entry;}
+  else data.push(entry);
+  document.getElementById('modalOverlay').classList.remove('open');
+  renderRheo();
+}
+function deleteEntry(id){
+  if(!confirm('¿Eliminar este ensayo?')) return;
+  data=data.filter(d=>d.id!==id);renderRheo();
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'){
+    document.getElementById('modalOverlay').classList.remove('open');
+    closePanel();closePopover();
+  }
+});
+document.addEventListener('click',e=>{
+  const pop=document.getElementById('dayPopover');
+  if(pop.style.display!=='none'&&!pop.contains(e.target)) closePopover();
+});
+
+renderRheo();
+</script>
+</body>
+</html>
