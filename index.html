@@ -500,50 +500,8 @@ function mkEntry(id,code,serie,agg,repl,naoh,temp){
     spec2:{fabDate:'',fabTime:'',checks:{}},
     cubes:{active:false,fabDate:'',fabTime:'',checks:{}}};
 }
-let data=[
-  mkEntry(1,'REF-10','I','control','—','—','10'),
-  mkEntry(2,'REF-20','I','control','—','—','20'),
-  mkEntry(3,'REF-30','I','control','—','—','30'),
-  mkEntry(4,'F-15-2.5M-10','I','fino','15','2.5M','10'),
-  mkEntry(5,'F-15-2.5M-20','I','fino','15','2.5M','20'),
-  mkEntry(6,'F-15-2.5M-30','I','fino','15','2.5M','30'),
-  mkEntry(7,'F-15-3.25M-10','I','fino','15','3.25M','10'),
-  mkEntry(8,'F-15-3.25M-20','I','fino','15','3.25M','20'),
-  mkEntry(9,'F-15-3.25M-30','I','fino','15','3.25M','30'),
-  mkEntry(10,'F-15-4.0M-10','I','fino','15','4.0M','10'),
-  mkEntry(11,'F-15-4.0M-20','I','fino','15','4.0M','20'),
-  mkEntry(12,'F-15-4.0M-30','I','fino','15','4.0M','30'),
-  mkEntry(13,'F-25-2.5M-10','I','fino','25','2.5M','10'),
-  mkEntry(14,'F-25-2.5M-20','I','fino','25','2.5M','20'),
-  mkEntry(15,'F-25-2.5M-30','I','fino','25','2.5M','30'),
-  mkEntry(16,'F-25-3.25M-10','I','fino','25','3.25M','10'),
-  mkEntry(17,'F-25-3.25M-20','I','fino','25','3.25M','20'),
-  mkEntry(18,'F-25-3.25M-30','I','fino','25','3.25M','30'),
-  mkEntry(19,'F-25-4.0M-10','I','fino','25','4.0M','10'),
-  mkEntry(20,'F-25-4.0M-20','I','fino','25','4.0M','20'),
-  mkEntry(21,'F-25-4.0M-30','I','fino','25','4.0M','30'),
-  mkEntry(22,'G-15-2.5M-10','I','grueso','15','2.5M','10'),
-  mkEntry(23,'G-15-2.5M-20','I','grueso','15','2.5M','20'),
-  mkEntry(24,'G-15-2.5M-30','I','grueso','15','2.5M','30'),
-  mkEntry(25,'G-25-3.25M-10','I','grueso','25','3.25M','10'),
-  mkEntry(26,'G-25-3.25M-20','I','grueso','25','3.25M','20'),
-  mkEntry(27,'G-25-3.25M-30','I','grueso','25','3.25M','30'),
-  mkEntry(28,'A-15-3.25M-20','I','ambos','15','3.25M','20'),
-  mkEntry(29,'A-25-2.5M-20','I','ambos','25','2.5M','20'),
-  mkEntry(30,'A-25-4.0M-20','I','ambos','25','4.0M','20'),
-  mkEntry(31,'SII-REF-25','II','control','—','—','25'),
-  mkEntry(32,'SII-F-20-2.5M-15','II','fino','20','2.5M','15'),
-  mkEntry(33,'SII-F-20-3.25M-25','II','fino','20','3.25M','25'),
-  mkEntry(34,'SII-G-20-4.0M-15','II','grueso','20','4.0M','15'),
-  mkEntry(35,'SII-G-20-3.25M-25','II','grueso','20','3.25M','25'),
-  mkEntry(36,'SII-A-20-3.25M-25','II','ambos','20','3.25M','25'),
-];
-data[0].notes='Mezcla de referencia';data[1].notes='Mezcla de referencia';data[2].notes='Mezcla de referencia';
-data[27].notes='Reemplazo fino+grueso';data[28].notes='Reemplazo fino+grueso';data[29].notes='Reemplazo fino+grueso';
-data[30].notes='Control Serie II';data[31].notes='T intermedia';data[32].notes='T intermedia';
-data[33].notes='Validación grueso';data[34].notes='Validación grueso';data[35].notes='Validación combinado';
-
-let nextId=37,sortCol='id',sortDir='asc',currentTab='rheology',openPanelId=null;
+let data=[];
+let nextId=1,sortCol='id',sortDir='asc',currentTab='rheology',openPanelId=null;
 let calYear=new Date().getFullYear(),calMonth=new Date().getMonth(),calViewMode='month';
 
 // ── JSONBIN SYNC ──────────────────────────────────────────────
